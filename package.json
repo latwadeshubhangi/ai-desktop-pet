@@ -1,0 +1,9 @@
+{
+  "name": "ai-desktop-pet",
+  "version": "1.0.0",
+  "description": "Animated AI desktop pet (Electron)",
+  "main": "src/main.js",
+  "scripts": { "start": "electron ." },
+  "devDependencies": { "electron": "^33.0.0" },
+  "license": "MIT"
+}

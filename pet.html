@@ -1,0 +1,90 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+:root{--s:1;--spd:1}
+html,body{margin:0;height:100%;background:transparent;overflow:hidden;font:14px "Segoe UI",system-ui,sans-serif;user-select:none}
+#pet{position:absolute;bottom:8px;left:-300px;width:calc(120px*var(--s));height:calc(120px*var(--s));display:none}
+#bob,#flip{width:100%;height:100%;transform-origin:50% 100%}
+#flip svg{width:100%;height:100%;cursor:pointer;overflow:visible}
+#bob{animation:breathe calc(3s/var(--spd)) ease-in-out infinite}
+#bob.walking{animation:hop calc(.45s/var(--spd)) ease-in-out infinite}
+#bob.turn{animation:turn .25s ease-in-out 1}
+@keyframes breathe{50%{transform:scale(1.02,1.04) translateY(-2px)}}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1.04,.94) rotate(-2deg)}50%{transform:translateY(-10px) scale(.96,1.05) rotate(2deg)}}
+@keyframes turn{50%{transform:scaleX(.2)}}
+#eyes{transform-box:fill-box;transform-origin:center;transition:transform .08s}
+#eyes.blink{transform:scaleY(.1)}
+#bob.walking #fl{animation:step calc(.45s/var(--spd)) infinite}
+#bob.walking #fr{animation:step calc(.45s/var(--spd)) infinite reverse}
+@keyframes step{50%{transform:translateY(-6px)}}
+#bubble,#chat{position:absolute;background:#fff;border:2px solid #e8a468;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,.25);color:#2b2118}
+#bubble{bottom:55%;max-width:200px;padding:8px 12px;opacity:0;transform:scale(.8);transition:.18s;pointer-events:none}
+#bubble.show{opacity:1;transform:none;pointer-events:auto}
+#bubble::after{content:"";position:absolute;top:50%;margin-top:-7px;border:7px solid transparent}
+.r #bubble{left:calc(100% + 14px)}.r #bubble::after{left:-16px;border-right-color:#e8a468}
+.l #bubble{right:calc(100% + 14px)}.l #bubble::after{right:-16px;border-left-color:#e8a468}
+#chat{bottom:0;width:250px;height:230px;display:none;flex-direction:column;padding:8px}
+.r #chat{left:calc(100% + 14px)}.l #chat{right:calc(100% + 14px)}
+#chat.open{display:flex}
+#head{display:flex;justify-content:space-between;font-weight:600;margin-bottom:4px}
+#x{border:0;background:none;cursor:pointer;font-size:16px}
+#log{flex:1;overflow-y:auto;font-size:13px}
+#log div{margin:3px 0;padding:5px 8px;border-radius:10px;max-width:88%;width:fit-content;user-select:text}
+#log .me{background:#ffe6c9;margin-left:auto}#log .pet{background:#eef3fb}
+#row{display:flex;gap:4px;margin-top:6px}
+#in{flex:1;min-width:0;padding:5px 8px;border:1px solid #d9c3a8;border-radius:8px}
+#send{border:0;border-radius:8px;background:#e8a468;color:#fff;padding:0 10px;cursor:pointer}
+</style></head><body>
+<div id="pet" class="r">
+ <div id="bob"><div id="flip">
+  <svg id="sprite" viewBox="0 0 120 120"><!-- REPLACE THIS SVG (or use <image href="..."> ) to change the pet's look -->
+   <ellipse cx="60" cy="112" rx="32" ry="6" fill="rgba(0,0,0,.15)"/>
+   <path d="M20 90 Q2 80 10 60 Q14 78 26 82Z" fill="#f4b183"/>
+   <path d="M24 46 L32 10 L54 28Z M96 46 L88 10 L66 28Z" fill="#f4b183"/>
+   <ellipse id="fl" cx="42" cy="108" rx="11" ry="6" fill="#f4b183"/><ellipse id="fr" cx="78" cy="108" rx="11" ry="6" fill="#f4b183"/>
+   <ellipse cx="60" cy="70" rx="44" ry="38" fill="#f6c28b"/><ellipse cx="62" cy="86" rx="26" ry="18" fill="#fff3e0"/>
+   <g id="eyes"><ellipse cx="48" cy="64" rx="5" ry="7" fill="#2b2118"/><ellipse cx="80" cy="64" rx="5" ry="7" fill="#2b2118"/></g>
+   <path d="M58 78 Q64 85 70 78" stroke="#2b2118" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+   <circle cx="36" cy="76" r="6" fill="#f2998f" opacity=".6"/><circle cx="90" cy="76" r="6" fill="#f2998f" opacity=".6"/>
+  </svg></div></div>
+ <div id="bubble"></div>
+ <div id="chat"><div id="head"><span>Chat</span><button id="x" aria-label="Close">✕</button></div><div id="log"></div>
+  <div id="row"><input id="in" placeholder="Say something…" maxlength="300"><button id="send">Send</button></div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s),pet=$('#pet'),bob=$('#bob'),flip=$('#flip'),bubble=$('#bubble'),chat=$('#chat'),log=$('#log'),inp=$('#in');
+let S={petSize:1,animSpeed:1,sound:true},present=false,x=-300,facing=1,leaveT=null,moving=false,hist=[];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)),rnd=(a,b)=>a+Math.random()*(b-a);
+const pw=()=>120*S.petSize;
+function apply(s){S=s;document.documentElement.style.setProperty('--s',s.petSize);document.documentElement.style.setProperty('--spd',s.animSpeed)}
+api.getSettings().then(apply);api.onSettings(apply);
+function setX(px,ms){pet.style.transition=ms?`left ${ms}ms linear`:'none';pet.style.left=px+'px';x=px}
+function face(d){if(d===facing)return;bob.classList.add('turn');setTimeout(()=>flip.style.transform=d<0?'scaleX(-1)':'none',110);setTimeout(()=>bob.classList.remove('turn'),260);facing=d}
+async function walkTo(t){const d=Math.abs(t-x);if(d<2)return;moving=true;face(t>x?1:-1);const ms=d/(140*S.animSpeed)*1000;bob.classList.add('walking');await sleep(280);setX(t,ms);await sleep(ms+30);bob.classList.remove('walking');moving=false}
+function bounds(){const W=innerWidth,lo=Math.min(300,W/4);return[lo,Math.max(lo+1,W-pw()-300)]}
+function blink(){$('#eyes').classList.add('blink');setTimeout(()=>$('#eyes').classList.remove('blink'),140);setTimeout(blink,rnd(2000,5500))}blink();
+function beep(){if(!S.sound)return;try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=660;g.gain.value=.05;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.12)}catch{}}
+function showBubble(m){if(!m)return;bubble.textContent=m;bubble.classList.add('show');beep()}
+function schedule(sec){clearTimeout(leaveT);leaveT=setTimeout(leave,sec*1000)}
+function placeSides(){pet.className=(x+pw()+480<innerWidth)?'r':'l'}
+async function doVisit(d){
+  if(present){if(!chat.classList.contains('open'))showBubble(d.msg);schedule(d.stay);return}
+  present=true;pet.style.display='block';setX(innerWidth+20,0);facing=1;flip.style.transform='none';
+  const[lo,hi]=bounds();await walkTo(rnd(lo,hi));placeSides();showBubble(d.msg);schedule(d.stay);
+}
+async function leave(){
+  if(chat.classList.contains('open')||moving){schedule(10);return}
+  bubble.classList.remove('show');await walkTo(innerWidth+160);
+  present=false;pet.style.display='none';api.away();
+}
+api.onVisit(doVisit);
+setInterval(async()=>{if(!present||moving||chat.classList.contains('open'))return;const[lo,hi]=bounds();await walkTo(Math.min(hi,Math.max(lo,x+rnd(-90,90))));placeSides()},9000);
+function add(c,t){const e=document.createElement('div');e.className=c;e.textContent=t;log.appendChild(e);log.scrollTop=log.scrollHeight;return e}
+async function openChat(){if(!present)await doVisit({msg:null,stay:600});placeSides();bubble.classList.remove('show');chat.classList.add('open');clearTimeout(leaveT);api.focus();inp.focus()}
+function closeChat(){chat.classList.remove('open');schedule(6)}
+api.onOpenChat(openChat);$('#sprite').addEventListener('click',openChat);$('#x').onclick=closeChat;
+async function send(){const t=inp.value.trim();if(!t)return;inp.value='';add('me',t);const w=add('pet','…');
+  const r=await api.chat(t,hist);w.textContent=r;hist.push({role:'user',content:t},{role:'assistant',content:r});hist=hist.slice(-12)}
+$('#send').onclick=send;inp.addEventListener('keydown',e=>{if(e.key==='Enter')send();if(e.key==='Escape')closeChat()});
+let ign=true;
+document.addEventListener('mousemove',e=>{const over=!!e.target.closest('#sprite,#bubble.show,#chat.open');if(over===ign){ign=!over;api.ignore(ign)}});
+document.addEventListener('mouseleave',()=>{if(!ign){ign=true;api.ignore(true)}});
+</script></body></html>

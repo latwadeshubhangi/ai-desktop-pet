@@ -1,0 +1,39 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pet Settings</title><style>
+body{font:14px "Segoe UI",system-ui,sans-serif;margin:0;padding:18px;background:#fbf6ee;color:#2b2118}
+h1{font-size:20px;margin:0 0 12px}label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:9px 0}
+input[type=number],input[type=password],input[type=time],select{width:150px;padding:5px}
+button{padding:9px 18px;border:0;border-radius:6px;background:#e8a468;color:#fff;font-weight:600;cursor:pointer;margin-top:10px}
+#msg{margin-left:10px;color:#2f855a}small{color:#7a6a58}
+</style></head><body><h1>🐾 Pet Settings</h1>
+<label>Enable pet <input type="checkbox" id="enabled"></label>
+<label>Visit frequency <span><select id="visit"><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="custom">Custom…</option></select>
+<input type="number" id="visitC" min="1" max="1440" style="width:60px;display:none" title="minutes"></span></label>
+<label>Water reminder <select id="water"><option value="0">Off</option><option value="30">Every 30 min</option><option value="45">Every 45 min</option><option value="60">Every hour</option><option value="90">Every 90 min</option><option value="120">Every 2 hours</option></select></label>
+<label>Check-ins <input type="checkbox" id="checkins"></label>
+<label>Sound <input type="checkbox" id="sound"></label>
+<label>Animation speed <input type="range" id="speed" min="0.5" max="2" step="0.1"></label>
+<label>Pet size <input type="range" id="size" min="0.6" max="1.6" step="0.1"></label>
+<label>AI chat <input type="checkbox" id="ai"></label>
+<label>OpenAI API key <input type="password" id="key" placeholder="paste key" autocomplete="off"></label>
+<small id="keyNote"></small>
+<label>Launch when computer starts <input type="checkbox" id="login"></label>
+<label>Always on top <input type="checkbox" id="top"></label>
+<label>Quiet hours <input type="checkbox" id="quiet"></label>
+<label>From <input type="time" id="qs"></label><label>To <input type="time" id="qe"></label>
+<button id="save">Save</button><span id="msg"></span>
+<script>
+const $=i=>document.getElementById(i);
+api.getSettings().then(s=>{$('enabled').checked=s.enabled;const l=['5','10','15','30','60'];
+ if(l.includes(String(s.visitMinutes)))$('visit').value=s.visitMinutes;else{$('visit').value='custom';$('visitC').value=s.visitMinutes;$('visitC').style.display=''}
+ if([...$('water').options].some(o=>o.value==s.waterMinutes))$('water').value=s.waterMinutes;
+ $('checkins').checked=s.checkins;$('sound').checked=s.sound;$('speed').value=s.animSpeed;$('size').value=s.petSize;
+ $('ai').checked=s.aiEnabled;$('login').checked=s.launchAtStartup;$('top').checked=s.alwaysOnTop;
+ $('quiet').checked=s.quietEnabled;$('qs').value=s.quietStart;$('qe').value=s.quietEnd;
+ $('keyNote').textContent=s.hasKey?'A key is saved (stored encrypted). Leave blank to keep it.':'No key saved: the pet uses built-in Basic mode.'});
+$('visit').onchange=()=>$('visitC').style.display=$('visit').value==='custom'?'':'none';
+$('save').onclick=async()=>{const v=$('visit').value==='custom'?Number($('visitC').value)||5:Number($('visit').value);
+ await api.saveSettings({enabled:$('enabled').checked,visitMinutes:v,waterMinutes:Number($('water').value),checkins:$('checkins').checked,
+ sound:$('sound').checked,animSpeed:Number($('speed').value),petSize:Number($('size').value),aiEnabled:$('ai').checked,apiKey:$('key').value,
+ launchAtStartup:$('login').checked,alwaysOnTop:$('top').checked,quietEnabled:$('quiet').checked,quietStart:$('qs').value,quietEnd:$('qe').value});
+ $('key').value='';$('msg').textContent='Saved ✓';setTimeout(()=>$('msg').textContent='',2000)};
+</script></body></html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+html,body{margin:0;background:transparent;overflow:hidden;user-select:none}
+#b{width:56px;height:56px;margin:4px;border-radius:50%;background:#fff3e0;border:2px solid #e8a468;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:grab;display:flex;align-items:center;justify-content:center;touch-action:none}
+#b:active{cursor:grabbing}
+</style></head><body>
+<div id="b" title="Click to summon your pet. Drag to move."><svg viewBox="0 0 120 120" width="44" height="44">
+<path d="M22 44 L30 10 L52 28Z M98 44 L90 10 L68 28Z" fill="#f4b183"/><ellipse cx="60" cy="70" rx="44" ry="38" fill="#f6c28b"/>
+<ellipse cx="44" cy="64" rx="5" ry="7" fill="#2b2118"/><ellipse cx="76" cy="64" rx="5" ry="7" fill="#2b2118"/>
+<path d="M52 78 Q60 86 68 78" stroke="#2b2118" fill="none" stroke-width="3" stroke-linecap="round"/></svg></div>
+<script>
+const b=document.getElementById('b');let sx,sy,moved=0,down=false;
+b.addEventListener('pointerdown',e=>{down=true;moved=0;sx=e.screenX;sy=e.screenY;b.setPointerCapture(e.pointerId);api.btnStart()});
+b.addEventListener('pointermove',e=>{if(!down)return;const dx=e.screenX-sx,dy=e.screenY-sy;moved=Math.max(moved,Math.abs(dx)+Math.abs(dy));if(moved>=4)api.btnMove(dx,dy)});
+b.addEventListener('pointerup',()=>{if(!down)return;down=false;moved<4?api.btnClick():api.btnDrop()});
+</script></body></html>

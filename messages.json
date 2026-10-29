@@ -1,0 +1,18 @@
+{
+  "greeting": ["Hi, how are you doing?", "Hi, checking in.", "Hi, still doing okay?"],
+  "water": ["Hi, want some water?", "Hi, water check.", "Hi, a sip of water?"],
+  "stretch": ["Hi, quick stretch?", "Hi, time to stretch a bit?"],
+  "break": ["Hi, need a break?", "Hi, rest your eyes for a minute?"],
+  "mood": ["Hi, how is work going?", "Hi, feeling okay?"],
+  "replies": [
+    { "match": "nice to meet you|pleased to meet", "say": ["Nice to meet you too. I'll be right here.", "Likewise. I live on your desktop now."] },
+    { "match": "how are you|how r u", "say": ["Doing well, thanks. How about you?", "Cozy and ready. You?"] },
+    { "match": "tired|sleepy|exhausted", "say": ["Sounds like a break is due. Even five minutes helps.", "Rest your eyes for a bit?"] },
+    { "match": "water|thirsty", "say": ["Good idea. Go grab a glass, I'll wait.", "Yes, water time. I'll be here."] },
+    { "match": "stress|anxious|overwhelm|worried", "say": ["That sounds heavy. Take a slow breath with me.", "One thing at a time. I'm here."] },
+    { "match": "thank", "say": ["Anytime.", "Happy to sit here with you."] },
+    { "match": "bye|see you|good night", "say": ["See you soon.", "Bye for now."] },
+    { "match": "\\b(hi|hello|hey|yo)\\b", "say": ["Hi! Good to see you.", "Hey. How's your day?"] }
+  ],
+  "fallback": ["Hmm, tell me more.", "I'm listening.", "I'm just a small pet, but I'm here with you."]
+}
